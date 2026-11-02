@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#10251d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="3-2-1 Putt">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <title>3-2-1 Putting Calculator</title>
+  <style>
+    :root { color-scheme: dark; --bg:#0b1712; --panel:#14251d; --panel2:#1b3026; --text:#f4f7f4; --muted:#a9b9af; --green:#a8e0b8; --line:#2b4437; }
+    * { box-sizing:border-box }
+    body { margin:0; background:linear-gradient(160deg,#10251d,#09120e 65%); color:var(--text); font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; min-height:100vh; }
+    main { max-width:560px; margin:0 auto; padding: max(22px,env(safe-area-inset-top)) 18px max(28px,env(safe-area-inset-bottom)); }
+    header { margin:8px 0 22px }
+    .eyebrow { color:var(--green); text-transform:uppercase; letter-spacing:.16em; font-size:11px; font-weight:800 }
+    h1 { font-size:29px; line-height:1.1; margin:7px 0 6px; letter-spacing:-.04em }
+    .sub { color:var(--muted); margin:0 }
+    .card { background:rgba(20,37,29,.96); border:1px solid var(--line); border-radius:20px; padding:18px; margin:14px 0; box-shadow:0 12px 35px #0003 }
+    .field { margin:0 0 17px }
+    label { display:block; font-size:13px; color:var(--muted); font-weight:700; margin-bottom:8px }
+    input { width:100%; border:1px solid var(--line); background:#09140f; color:var(--text); border-radius:13px; padding:14px 13px; font-size:22px; font-weight:700; outline:none; }
+    input:focus { border-color:var(--green) }
+    .seg { display:grid; grid-template-columns:repeat(5,1fr); gap:7px }
+    .seg button { background:#0b1712; color:var(--text); border:1px solid var(--line); border-radius:11px; padding:12px 4px; font-size:15px; font-weight:750 }
+    .seg button.active { background:var(--green); color:#10251d; border-color:var(--green) }
+    .seg.slope { grid-template-columns:repeat(3,1fr) }
+    .results { display:grid; grid-template-columns:1fr 1fr; gap:10px }
+    .result { background:var(--panel2); border:1px solid var(--line); border-radius:15px; padding:14px }
+    .result small { display:block; color:var(--muted); font-size:11px; font-weight:800; letter-spacing:.1em }
+    .number { font-size:34px; font-weight:850; letter-spacing:-.05em; margin-top:3px; white-space:nowrap }
+    .unit { color:var(--green); font-size:17px; font-weight:750 }
+    .break { margin-top:10px; background:#203a2c; border-color:#41634c }
+    .break .number { color:var(--green); font-size:38px }
+    .hint { color:var(--muted); font-size:12px; margin:12px 2px 0 }
+    .formula { display:grid; gap:8px; color:var(--muted); font-size:14px }
+    .formula strong { color:var(--text) }
+    .reset { width:100%; padding:13px; border:1px solid var(--line); border-radius:12px; background:transparent; color:var(--muted); font-weight:700; font-size:14px; margin-top:14px }
+    .warn { color:#ffd18b; font-size:13px; margin-top:10px; display:none }
+    footer { color:#82958a; font-size:11px; text-align:center; margin:20px 0 0 }
+    @media (max-width:360px) { .number{font-size:29px} main{padding-left:13px;padding-right:13px} }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">Your on-course putting tool</div>
+    <h1>3-2-1 Putting Calculator</h1>
+    <p class="sub">Set the distance. Set the green. Get your stroke and aim.</p>
+  </header>
+
+  <section class="card" aria-label="Putt settings">
+    <div class="field">
+      <label for="distance">PUTT DISTANCE · FEET</label>
+      <input id="distance" type="number" min="0.1" max="300" step="0.5" value="30" inputmode="decimal">
+    </div>
+    <div class="field">
+      <label>GREEN SPEED · STIMP</label>
+      <div class="seg" id="stimps">
+        <button data-value="8">8</button><button data-value="9" class="active">9</button><button data-value="10">10</button><button data-value="11">11</button><button data-value="12">12</button>
+      </div>
+    </div>
+    <div class="field" style="margin-bottom:0">
+      <label>SLOPE</label>
+      <div class="seg slope" id="slopes">
+        <button data-value="1" class="active">1%</button><button data-value="2">2%</button><button data-value="3">3%</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" aria-live="polite">
+    <div class="eyebrow" style="margin-bottom:12px">Your stroke</div>
+    <div class="results">
+      <div class="result"><small>BACKSWING</small><div class="number" id="back">25<span class="unit">"</span></div></div>
+      <div class="result"><small>FOLLOW-THROUGH</small><div class="number" id="through">12.5<span class="unit">"</span></div></div>
+    </div>
+    <div class="result break">
+      <small>BREAK · AIM OUTSIDE CUP</small>
+      <div class="number" id="break">19<span class="unit">"</span></div>
+      <div class="hint" style="margin:2px 0 0;color:#c2d8c8">Aim on the high side by this calculated amount.</div>
+    </div>
+    <div class="hint" id="adjustment">Stimp 9 adjustment: 0" · Follow-through is half the adjusted backswing.</div>
+    <div class="warn" id="warning">The selected Stimp adjustment produces a zero or negative backswing. Check the inputs or use your on-course judgment.</div>
+    <button class="reset" id="reset">Reset to 30 ft · Stimp 9 · 1% slope</button>
+  </section>
+
+  <section class="card">
+    <div class="eyebrow" style="margin-bottom:10px">The math behind your system</div>
+    <div class="formula">
+      <div><strong>Backswing:</strong> distance up to 20 ft, then add ½ inch per extra foot; adjust 1 inch per Stimp point from 9.</div>
+      <div><strong>Follow-through:</strong> half the adjusted backswing.</div>
+      <div><strong>Break:</strong> (distance in feet × ⅔ − 1) × slope multiplier.</div>
+    </div>
+  </section>
+  <footer>Personal putting model · Use as a starting calibration and adjust to actual green conditions.</footer>
+</main>
+<script>
+  const $ = id => document.getElementById(id);
+  let stimp = 9, slope = 1;
+  const fmt = n => {
+    const rounded = Math.round(n * 100) / 100;
+    return rounded.toFixed(2).replace(/\.?0+$/, '');
+  };
+  function selectGroup(id, setter) {
+    document.querySelectorAll(`#${id} button`).forEach(btn => {
+      btn.addEventListener('click', () => {
+        setter(Number(btn.dataset.value));
+        document.querySelectorAll(`#${id} button`).forEach(b => b.classList.toggle('active', b === btn));
+        calculate();
+      });
+    });
+  }
+  selectGroup('stimps', v => stimp = v);
+  selectGroup('slopes', v => slope = v);
+  function calculate() {
+    const d = Math.max(0, Number($('distance').value) || 0);
+    const base = d <= 20 ? d : 20 + (d - 20) / 2;
+    const back = base - (stimp - 9);
+    const through = back / 2;
+    const br = (d * 2 / 3 - 1) * slope;
+    $('back').innerHTML = `${fmt(back)}<span class="unit">"</span>`;
+    $('through').innerHTML = `${fmt(through)}<span class="unit">"</span>`;
+    $('break').innerHTML = `${fmt(br)}<span class="unit">"</span>`;
+    const adjustment = stimp === 9 ? '0"' : `${stimp > 9 ? '−' : '+'}${Math.abs(stimp - 9)}"`;
+    $('adjustment').textContent = `Stimp ${stimp} adjustment: ${adjustment} to baseline backswing · Follow-through is half the adjusted backswing.`;
+    $('warning').style.display = back <= 0 ? 'block' : 'none';
+  }
+  $('distance').addEventListener('input', calculate);
+  $('reset').addEventListener('click', () => {
+    $('distance').value = 30; stimp = 9; slope = 1;
+    document.querySelectorAll('#stimps button').forEach(b => b.classList.toggle('active', b.dataset.value === '9'));
+    document.querySelectorAll('#slopes button').forEach(b => b.classList.toggle('active', b.dataset.value === '1'));
+    calculate();
+  });
+  calculate();
+  if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+</script>
+</body>
+</html>

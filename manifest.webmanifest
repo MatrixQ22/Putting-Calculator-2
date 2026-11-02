@@ -1,0 +1,10 @@
+{
+  "name": "3-2-1 Putting Calculator",
+  "short_name": "3-2-1 Putt",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b1712",
+  "theme_color": "#10251d",
+  "description": "A personal putting stroke and break calculator."
+}
